@@ -12,4 +12,11 @@ export async function restoreSession(){return (await request<{user:ApiUser}>('/a
 export async function registerAccount(input:{name:string;email:string;password:string}){return (await request<{user:ApiUser}>('/api/v1/auth/register',{method:'POST',body:JSON.stringify(input)})).user}
 export async function logoutAccount(){return request<void>('/api/v1/auth/logout',{method:'POST'})}
 export async function saveInterests(categories:string[]){return (await request<{user:ApiUser}>('/api/v1/profile',{method:'PATCH',body:JSON.stringify({categories})})).user}
-export async function publishPost(post:{title:string;caption:string;category:string;type:string}){const result=await request<{item:{id:string}}>('/api/v1/content',{method:'POST',body:JSON.stringify({title:post.title,caption:post.caption,category:post.category,media:{type:post.type.toLowerCase()}})});return result.item}
+export async function uploadMedia(file:File){
+  const signed=await request<{assetId:string;uploadUrl:string;headers:Record<string,string>}>('/api/v1/media/presign',{method:'POST',body:JSON.stringify({filename:file.name,contentType:file.type,byteSize:file.size})});
+  const upload=await fetch(signed.uploadUrl,{method:'PUT',headers:signed.headers,body:file});
+  if(!upload.ok)throw new Error('Media upload failed');
+  await request(`/api/v1/media/${signed.assetId}/complete`,{method:'POST'});
+  return signed.assetId;
+}
+export async function publishPost(post:{title:string;caption:string;category:string;type:string;assetId?:string}){const result=await request<{item:{id:string}}>('/api/v1/content',{method:'POST',body:JSON.stringify({title:post.title,caption:post.caption,category:post.category,assetId:post.assetId,media:{type:post.type.toLowerCase()}})});return result.item}

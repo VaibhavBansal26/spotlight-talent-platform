@@ -74,6 +74,14 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum MediaStatus {
+  PENDING
+  UPLOADED
+  PROCESSING
+  READY
+  REJECTED
+}
+
 model User {
   id               String          @id @default(cuid())
   email            String          @unique
@@ -98,6 +106,7 @@ model User {
   following        Follow[]        @relation("following")
   followers        Follow[]        @relation("followers")
   orders           Order[]
+  mediaAssets      MediaAsset[]
 }
 
 model Content {
@@ -109,6 +118,8 @@ model Content {
   category      String
   type          ContentType
   mediaUrl      String?
+  assetId       String?       @unique
+  asset         MediaAsset?   @relation(fields: [assetId], references: [id], onDelete: SetNull)
   status        ContentStatus @default(PROCESSING)
   viewCount     Int           @default(0)
   diamondCount  Int           @default(0)
@@ -121,6 +132,26 @@ model Content {
 
   @@index([status, category, publishedAt(sort: Desc)])
   @@index([diamondCount(sort: Desc), publishedAt(sort: Desc)])
+}
+
+model MediaAsset {
+  id          String      @id @default(cuid())
+  ownerId     String
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  objectKey   String      @unique
+  contentType String
+  byteSize    Int
+  status      MediaStatus @default(PENDING)
+  publicUrl   String?
+  width       Int?
+  height      Int?
+  durationMs  Int?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  content     Content?
+
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
 }
 
 model Review {

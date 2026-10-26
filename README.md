@@ -28,3 +28,7 @@ See `docs/architecture.md` for boundaries, scale milestones, and a staged delive
 ## Recommendation parameters
 
 Authenticated clients can call `/api/v1/recommendations` and tune `interestWeight`, `qualityWeight`, `engagementWeight`, `freshnessWeight`, `explorationWeight`, `diversityPenalty`, and `limit`. The Node API selects eligible PostgreSQL content and the Python service ranks and diversifies it. `docker compose up -d` starts the recommender on port `8000`.
+
+## Media uploads
+
+The browser requests a short-lived signed upload from `/api/v1/media/presign`, uploads directly to S3-compatible storage, and asks the API to verify the final object before publishing. PostgreSQL stores ownership and processing state, not file bytes. Local Docker Compose includes MinIO on port `9000` and its console on `9001`.
