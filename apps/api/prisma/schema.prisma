@@ -82,6 +82,13 @@ enum MediaStatus {
   REJECTED
 }
 
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
 model User {
   id               String          @id @default(cuid())
   email            String          @unique
@@ -108,6 +115,7 @@ model User {
   orders           Order[]
   mediaAssets      MediaAsset[]
   comments         Comment[]
+  sentGroupInvites GroupInvite[]
 }
 
 model Content {
@@ -209,6 +217,7 @@ model Group {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   memberships Membership[]
+  invites     GroupInvite[]
 }
 
 model Membership {
@@ -221,6 +230,23 @@ model Membership {
 
   @@id([userId, groupId])
   @@index([groupId, role])
+}
+
+model GroupInvite {
+  id        String       @id @default(cuid())
+  groupId   String
+  inviterId String
+  email     String
+  role      MemberRole   @default(MEMBER)
+  token     String       @unique
+  status    InviteStatus @default(PENDING)
+  expiresAt DateTime
+  createdAt DateTime     @default(now())
+  group     Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  inviter   User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, status])
+  @@index([email, status])
 }
 
 model Event {

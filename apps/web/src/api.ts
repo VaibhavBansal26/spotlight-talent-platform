@@ -22,3 +22,6 @@ export async function uploadMedia(file:File){
 export async function publishPost(post:{title:string;caption:string;category:string;type:string;assetId?:string}){const result=await request<{item:{id:string}}>('/api/v1/content',{method:'POST',body:JSON.stringify({title:post.title,caption:post.caption,category:post.category,assetId:post.assetId,media:{type:post.type.toLowerCase()}})});return result.item}
 export async function submitReview(contentId:string,rating:number,body:string){return request(`/api/v1/content/${contentId}/reviews`,{method:'POST',body:JSON.stringify({rating,body})})}
 export async function submitComment(contentId:string,body:string,parentId?:string){return request(`/api/v1/content/${contentId}/comments`,{method:'POST',body:JSON.stringify({body,parentId})})}
+export async function joinGroup(groupId:string){return request(`/api/v1/groups/${groupId}/join`,{method:'POST'})}
+export async function leaveGroup(groupId:string){return request<void>(`/api/v1/groups/${groupId}/membership`,{method:'DELETE'})}
+export async function inviteToGroup(groupId:string,email:string,role='MEMBER'){return request(`/api/v1/groups/${groupId}/invites`,{method:'POST',body:JSON.stringify({email,role})})}
