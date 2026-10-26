@@ -1,0 +1,302 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CREATOR
+  VIEWER
+  ADMIN
+}
+
+enum ContentType {
+  VIDEO
+  IMAGE
+  AUDIO
+}
+
+enum ContentStatus {
+  PROCESSING
+  PUBLISHED
+  HIDDEN
+}
+
+enum MemberRole {
+  MEMBER
+  MODERATOR
+  OWNER
+  AGENT
+  TALENT
+}
+
+enum EventRole {
+  ATTENDEE
+  PERFORMER
+  MODERATOR
+  HOST
+}
+
+enum EventStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum BattleStatus {
+  DRAFT
+  OPEN
+  VOTING
+  COMPLETE
+  CANCELLED
+}
+
+enum LedgerType {
+  PURCHASE
+  REWARD
+  TIP
+  SPEND
+  REFUND
+  PAYOUT
+  ADJUSTMENT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  REFUNDED
+  CANCELLED
+}
+
+model User {
+  id               String          @id @default(cuid())
+  email            String          @unique
+  passwordHash     String
+  displayName      String
+  handle           String          @unique
+  role             UserRole        @default(CREATOR)
+  bio              String          @default("")
+  avatarUrl        String          @default("")
+  categories       String[]
+  tokenVersion     Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  content          Content[]
+  reviews          Review[]
+  memberships      Membership[]
+  eventMemberships EventAttendee[]
+  diamondEntries   DiamondLedger[]
+  sentMessages     Message[]
+  battleEntries    BattleEntry[]
+  battleVotes      BattleVote[]
+  following        Follow[]        @relation("following")
+  followers        Follow[]        @relation("followers")
+  orders           Order[]
+}
+
+model Content {
+  id            String        @id @default(cuid())
+  creatorId     String
+  creator       User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  title         String
+  caption       String        @default("")
+  category      String
+  type          ContentType
+  mediaUrl      String?
+  status        ContentStatus @default(PROCESSING)
+  viewCount     Int           @default(0)
+  diamondCount  Int           @default(0)
+  commentCount  Int           @default(0)
+  ratingAverage Decimal       @default(0) @db.Decimal(3, 2)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  reviews       Review[]
+
+  @@index([status, category, publishedAt(sort: Desc)])
+  @@index([diamondCount(sort: Desc), publishedAt(sort: Desc)])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  authorId  String
+  contentId String
+  rating    Int
+  body      String   @default("")
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([authorId, contentId])
+  @@index([contentId, createdAt(sort: Desc)])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+model Group {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  description String       @default("")
+  isAgency    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+}
+
+model Membership {
+  userId   String
+  groupId  String
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+  @@index([groupId, role])
+}
+
+model Event {
+  id             String          @id @default(cuid())
+  title          String
+  description    String          @default("")
+  startsAt       DateTime
+  endsAt         DateTime?
+  status         EventStatus     @default(DRAFT)
+  capacity       Int             @default(1000)
+  streamProvider String?
+  streamRoomId   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  attendees      EventAttendee[]
+
+  @@index([status, startsAt])
+}
+
+model EventAttendee {
+  eventId  String
+  userId   String
+  role     EventRole @default(ATTENDEE)
+  joinedAt DateTime  @default(now())
+  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+  @@index([eventId, role])
+}
+
+model Battle {
+  id             String        @id @default(cuid())
+  title          String
+  category       String
+  status         BattleStatus  @default(DRAFT)
+  votingStartsAt DateTime?
+  votingEndsAt   DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  entries        BattleEntry[]
+  votes          BattleVote[]
+}
+
+model BattleEntry {
+  id        String  @id @default(cuid())
+  battleId  String
+  creatorId String
+  contentId String?
+  voteCount Int     @default(0)
+  battle    Battle  @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  creator   User    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([battleId, creatorId])
+  @@index([battleId, voteCount(sort: Desc)])
+}
+
+model BattleVote {
+  battleId  String
+  voterId   String
+  entryId   String
+  createdAt DateTime @default(now())
+  battle    Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  voter     User     @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@id([battleId, voterId])
+  @@index([entryId])
+}
+
+model DiamondLedger {
+  id             String     @id @default(cuid())
+  userId         String
+  type           LedgerType
+  amount         Int
+  balanceAfter   Int
+  referenceType  String?
+  referenceId    String?
+  idempotencyKey String     @unique
+  metadata       Json?
+  createdAt      DateTime   @default(now())
+  user           User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model MarketplaceItem {
+  id           String   @id @default(cuid())
+  name         String
+  description  String   @default("")
+  diamondPrice Int
+  inventory    Int?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orders       Order[]
+}
+
+model Order {
+  id             String          @id @default(cuid())
+  buyerId        String
+  itemId         String
+  diamondTotal   Int
+  status         OrderStatus     @default(PENDING)
+  idempotencyKey String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  buyer          User            @relation(fields: [buyerId], references: [id], onDelete: Restrict)
+  item           MarketplaceItem @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@index([buyerId, createdAt(sort: Desc)])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  kind      String    @default("direct")
+  createdAt DateTime  @default(now())
+  messages  Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+}

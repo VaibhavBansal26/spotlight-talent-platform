@@ -1,0 +1,14 @@
+{
+  "name": "spotlight-talent-platform",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @spotlight/web\" \"npm run dev -w @spotlight/api\"",
+    "build": "npm run build -w @spotlight/web && npm run build -w @spotlight/api",
+    "test": "npm run test -w @spotlight/api",
+    "typecheck": "npm run typecheck -w @spotlight/web && npm run typecheck -w @spotlight/api"
+  },
+  "devDependencies": {"concurrently": "^9.1.2"},
+  "engines": {"node": ">=20"}
+}

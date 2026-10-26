@@ -1,0 +1,8 @@
+export type Talent = { id:string; name:string; handle:string; role:string; category:string; rating:number; reviews:number; diamonds:number; color:string; initials:string; verified?:boolean; live?:boolean; image:string; blurb:string };
+export const talents: Talent[] = [
+  {id:'1',name:'Maya Chen',handle:'@mayamoves',role:'Contemporary dancer',category:'Dance',rating:4.9,reviews:284,diamonds:12800,color:'#ff6b44',initials:'MC',verified:true,live:true,image:'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=900&q=80',blurb:'Movement, memory, and stories without words.'},
+  {id:'2',name:'Elio Rivers',handle:'@eliorivers',role:'Singer & songwriter',category:'Music',rating:4.8,reviews:197,diamonds:9400,color:'#ad82ff',initials:'ER',verified:true,image:'https://images.unsplash.com/photo-1524650359799-842906ca1c06?auto=format&fit=crop&w=900&q=80',blurb:'Bedroom soul with a midnight pulse.'},
+  {id:'3',name:'Noor Ansari',handle:'@noorframes',role:'Visual storyteller',category:'Film',rating:4.7,reviews:143,diamonds:7200,color:'#43d4bc',initials:'NA',image:'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=900&q=80',blurb:'Tiny films about enormous feelings.'},
+  {id:'4',name:'Jules Bennett',handle:'@juleslaughs',role:'Stand-up comic',category:'Comedy',rating:4.8,reviews:225,diamonds:10100,color:'#ffc857',initials:'JB',live:true,image:'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=900&q=80',blurb:'Stories that start awkward and end honest.'}
+];
+export const categories = ['For you','Music','Dance','Comedy','Film','Art'];
