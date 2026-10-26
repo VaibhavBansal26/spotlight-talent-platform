@@ -107,6 +107,7 @@ model User {
   followers        Follow[]        @relation("followers")
   orders           Order[]
   mediaAssets      MediaAsset[]
+  comments         Comment[]
 }
 
 model Content {
@@ -129,6 +130,7 @@ model Content {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   reviews       Review[]
+  comments      Comment[]
 
   @@index([status, category, publishedAt(sort: Desc)])
   @@index([diamondCount(sort: Desc), publishedAt(sort: Desc)])
@@ -167,6 +169,24 @@ model Review {
 
   @@unique([authorId, contentId])
   @@index([contentId, createdAt(sort: Desc)])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  authorId  String
+  contentId String
+  parentId  String?
+  body      String
+  hidden    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([contentId, createdAt(sort: Desc)])
+  @@index([parentId, createdAt])
 }
 
 model Follow {
