@@ -25,3 +25,6 @@ export async function submitComment(contentId:string,body:string,parentId?:strin
 export async function joinGroup(groupId:string){return request(`/api/v1/groups/${groupId}/join`,{method:'POST'})}
 export async function leaveGroup(groupId:string){return request<void>(`/api/v1/groups/${groupId}/membership`,{method:'DELETE'})}
 export async function inviteToGroup(groupId:string,email:string,role='MEMBER'){return request(`/api/v1/groups/${groupId}/invites`,{method:'POST',body:JSON.stringify({email,role})})}
+export async function joinEvent(eventId:string,role:'ATTENDEE'|'PERFORMER'='ATTENDEE'){return request(`/api/v1/events/${eventId}/join`,{method:'POST',body:JSON.stringify({role})})}
+export async function leaveEvent(eventId:string){return request<void>(`/api/v1/events/${eventId}/attendance`,{method:'DELETE'})}
+export async function createEvent(input:{title:string;description:string;startsAt:string;capacity:number}){return request('/api/v1/events',{method:'POST',body:JSON.stringify(input)})}

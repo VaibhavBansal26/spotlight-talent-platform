@@ -116,6 +116,7 @@ model User {
   mediaAssets      MediaAsset[]
   comments         Comment[]
   sentGroupInvites GroupInvite[]
+  hostedEvents     Event[]         @relation("EventHost")
 }
 
 model Content {
@@ -251,6 +252,7 @@ model GroupInvite {
 
 model Event {
   id             String          @id @default(cuid())
+  hostId         String
   title          String
   description    String          @default("")
   startsAt       DateTime
@@ -261,9 +263,11 @@ model Event {
   streamRoomId   String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  host           User            @relation("EventHost", fields: [hostId], references: [id], onDelete: Cascade)
   attendees      EventAttendee[]
 
   @@index([status, startsAt])
+  @@index([hostId, startsAt(sort: Desc)])
 }
 
 model EventAttendee {
