@@ -117,6 +117,7 @@ model User {
   comments         Comment[]
   sentGroupInvites GroupInvite[]
   hostedEvents     Event[]         @relation("EventHost")
+  conversations    ConversationParticipant[]
 }
 
 model Content {
@@ -364,10 +365,26 @@ model Order {
 }
 
 model Conversation {
-  id        String    @id @default(cuid())
-  kind      String    @default("direct")
-  createdAt DateTime  @default(now())
-  messages  Message[]
+  id            String                    @id @default(cuid())
+  kind          String                    @default("direct")
+  createdAt     DateTime                  @default(now())
+  lastMessageAt DateTime                  @default(now())
+  messages      Message[]
+  participants  ConversationParticipant[]
+
+  @@index([lastMessageAt(sort: Desc)])
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId, joinedAt(sort: Desc)])
 }
 
 model Message {

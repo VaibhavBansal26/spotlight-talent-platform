@@ -28,3 +28,6 @@ export async function inviteToGroup(groupId:string,email:string,role='MEMBER'){r
 export async function joinEvent(eventId:string,role:'ATTENDEE'|'PERFORMER'='ATTENDEE'){return request(`/api/v1/events/${eventId}/join`,{method:'POST',body:JSON.stringify({role})})}
 export async function leaveEvent(eventId:string){return request<void>(`/api/v1/events/${eventId}/attendance`,{method:'DELETE'})}
 export async function createEvent(input:{title:string;description:string;startsAt:string;capacity:number}){return request('/api/v1/events',{method:'POST',body:JSON.stringify(input)})}
+export async function listConversations(){return request('/api/v1/conversations')}
+export async function listMessages(conversationId:string){return request(`/api/v1/conversations/${conversationId}/messages`)}
+export async function sendMessage(conversationId:string,body:string){return request(`/api/v1/conversations/${conversationId}/messages`,{method:'POST',body:JSON.stringify({body})})}
