@@ -31,3 +31,4 @@ export async function createEvent(input:{title:string;description:string;startsA
 export async function listConversations(){return request('/api/v1/conversations')}
 export async function listMessages(conversationId:string){return request(`/api/v1/conversations/${conversationId}/messages`)}
 export async function sendMessage(conversationId:string,body:string){return request(`/api/v1/conversations/${conversationId}/messages`,{method:'POST',body:JSON.stringify({body})})}
+export async function purchaseMarketplaceItem(itemId:string,idempotencyKey:string){return request<{balance:number}>(`/api/v1/marketplace/${itemId}/purchase`,{method:'POST',body:JSON.stringify({idempotencyKey})})}
